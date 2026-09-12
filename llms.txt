@@ -1,0 +1,28 @@
+# clipvolume
+
+> A macOS menu bar volume control with a per-app mixer. It shows every app currently producing audio with a live level meter, gives each app its own volume slider and mute button, and can play/pause Spotify, Music, TV, QuickTime Player and VLC directly. No virtual audio driver, no kernel extension, no Accessibility permission. Free for personal use.
+
+clipvolume replaces the Sound icon in the macOS menu bar. Clicking it shows a master volume slider, a mute button and an output-device picker. A "Mixer ›" row expands to list every app that is producing audio, each with a live level meter, a per-app slider (relative to master), a mute button, and — for supported media apps — a play/pause button. Per-app settings last until that app relaunches. Media apps playing somewhere other than the Mac (for example Spotify via Spotify Connect) still get a row with a working pause button.
+
+Key facts:
+- Platform: macOS 14.4 (Sonoma) or later. Apple silicon and Intel.
+- Price: free for personal use, licensed under CC BY-NC 4.0. Commercial use requires permission. Source code on GitHub.
+- Distribution: direct download (.dmg) from GitHub Releases, signed with a Developer ID and notarized by Apple. Not on the Mac App Store because Core Audio process taps do not work reliably in the App Store sandbox.
+- Technology: Core Audio process taps (macOS 14.2+ API). No virtual audio device, no kernel extension.
+- Permissions: none for master volume, device picker, or the list of apps making sound. "System Audio Recording" (one prompt) for the per-app mixer. "Automation" (one prompt per app) for play/pause. Never asks for Accessibility.
+- Privacy: no network connections, nothing recorded or saved to disk.
+- Author/publisher: Michael Moore.
+- Current version: 0.1.0.
+
+## Pages
+- [Home / download](https://clipvolume.com/): overview, how it works, permissions, FAQ, download.
+- [Privacy](https://clipvolume.com/privacy/): what the app does and doesn't collect.
+- [Download (.dmg)](https://github.com/mrmichaelmoorecom-sys/clipvolume/releases/latest/download/clipvolume.dmg): always the latest notarized build.
+- [GitHub repository](https://github.com/mrmichaelmoorecom-sys/clipvolume/): source, releases, issues.
+- [License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/): full license terms.
+
+## Common questions
+- Which app is making that noise? Open the Mixer; the app whose meter is moving is the one playing.
+- Can it pause a YouTube tab? No — browsers don't expose play/pause — but it can mute the tab's app instantly.
+- Does it need Accessibility? No.
+- Related apps by the same author: clipandcue (clipboard history, clipandcue.com) and clipandnote (screenshot markup, clipandnote.com).

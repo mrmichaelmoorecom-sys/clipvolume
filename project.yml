@@ -1,0 +1,67 @@
+# XcodeGen spec — regenerate the .xcodeproj with `make project` (or `xcodegen generate`).
+name: clipvolume
+
+options:
+  bundleIdPrefix: com.clipvolume
+  createIntermediateGroups: true
+  deploymentTarget:
+    macOS: "14.4"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    SWIFT_STRICT_CONCURRENCY: minimal
+    DEVELOPMENT_TEAM: HA5AB7JS87
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "Developer ID Application"
+    ENABLE_HARDENED_RUNTIME: YES
+    MACOSX_DEPLOYMENT_TARGET: "14.4"
+
+targets:
+  clipvolume:
+    type: application
+    platform: macOS
+    sources:
+      - Sources
+      - path: Resources/AppIcon.icns
+    info:
+      path: Resources/Info.plist
+      properties:
+        CFBundleName: clipvolume
+        CFBundleIconFile: AppIcon
+        CFBundleDisplayName: clipvolume
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        LSApplicationCategoryType: public.app-category.utilities
+        # Menu-bar only: no Dock icon, no app menu.
+        LSUIElement: true
+        NSHumanReadableCopyright: © 2026 Michael Moore
+        # Shown in the one-time "System Audio Recording" prompt. Only the mixer needs it.
+        NSAudioCaptureUsageDescription: clipvolume listens to each app's audio so it can show a level meter and apply a per-app volume or mute. Nothing is recorded or saved.
+        # Shown in the per-app "clipvolume wants to control Spotify" Automation prompt.
+        NSAppleEventsUsageDescription: clipvolume uses this to play and pause media apps such as Spotify and Music from the mixer.
+    entitlements:
+      path: Resources/clipvolume.entitlements
+      properties:
+        com.apple.security.app-sandbox: false
+        com.apple.security.device.audio-input: true
+        com.apple.security.automation.apple-events: true
+    settings:
+      base:
+        PRODUCT_NAME: clipvolume
+        PRODUCT_BUNDLE_IDENTIFIER: com.clipvolume.app
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: NO
+        COMBINE_HIDPI_IMAGES: YES
+
+schemes:
+  clipvolume:
+    build:
+      targets:
+        clipvolume: all
+    run:
+      config: Debug
+    archive:
+      config: Release

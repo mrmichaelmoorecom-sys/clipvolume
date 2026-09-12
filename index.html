@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>clipvolume — Who's making that noise?</title>
+<meta name="description" content="A macOS menu bar volume control with the per-app mixer Apple never shipped. See every app that's playing, turn it down, mute it, or pause it — no audio driver, no Accessibility permission.">
+<link rel="icon" href="img/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="canonical" href="https://clipvolume.com/">
+<meta name="theme-color" content="#5f918e">
+<meta name="author" content="Michael Moore">
+<meta name="robots" content="index, follow">
+<meta name="keywords" content="volume mixer, macOS, menu bar, per-app volume, mute app, audio source, which app is playing sound, Mac app, Core Audio">
+
+<!-- Open Graph / Facebook / iMessage / Slack -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="clipvolume">
+<meta property="og:title" content="clipvolume — Who's making that noise?">
+<meta property="og:description" content="A macOS menu bar volume control with the per-app mixer Apple never shipped. See every app that's playing, turn it down, mute it, or pause it.">
+<meta property="og:url" content="https://clipvolume.com/">
+<meta property="og:image" content="https://clipvolume.com/img/og-image.png?v=1">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="clipvolume — per-app volume, mute and pause for the Mac menu bar">
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="clipvolume — Who's making that noise?">
+<meta name="twitter:description" content="See every app that's playing audio on your Mac, turn it down, mute it, or pause it — from one menu bar icon.">
+<meta name="twitter:image" content="https://clipvolume.com/img/og-image.png?v=1">
+
+<!-- Structured data: machine-readable facts for search engines and AI assistants -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "clipvolume",
+  "operatingSystem": "macOS 14.4 or later",
+  "applicationCategory": "UtilitiesApplication",
+  "applicationSubCategory": "Volume Mixer",
+  "description": "A macOS menu bar volume control with a per-app mixer. It lists every app currently producing audio with a live level meter, gives each one its own volume slider and mute button, and can play/pause media apps such as Spotify, Music, TV, QuickTime Player and VLC. Built on Core Audio process taps — no virtual audio driver, no kernel extension, no Accessibility permission.",
+  "url": "https://clipvolume.com/",
+  "image": "https://clipvolume.com/img/og-image.png?v=1",
+  "screenshot": "https://clipvolume.com/img/og-image.png?v=1",
+  "downloadUrl": "https://github.com/mrmichaelmoorecom-sys/clipvolume/releases/latest/download/clipvolume.dmg",
+  "installUrl": "https://clipvolume.com/#download",
+  "softwareVersion": "0.1.0",
+  "softwareRequirements": "macOS 14.4 or later",
+  "fileSize": "1MB",
+  "dateModified": "2026-09-11",
+  "license": "https://creativecommons.org/licenses/by-nc/4.0/",
+  "isAccessibleForFree": true,
+  "author": { "@type": "Person", "name": "Michael Moore" },
+  "publisher": { "@type": "Person", "name": "Michael Moore" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "featureList": [
+    "Master volume slider, mute and output-device picker in the menu bar",
+    "Lists every app currently producing audio, with a live level meter per app",
+    "Per-app volume slider and mute button; settings reset when that app relaunches",
+    "Play/pause for Spotify, Music, TV, QuickTime Player and VLC — including Spotify playing on another device",
+    "No virtual audio driver, no kernel extension, no Accessibility permission",
+    "Signed with a Developer ID and notarized by Apple"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "clipvolume",
+  "url": "https://clipvolume.com/",
+  "publisher": { "@type": "Person", "name": "Michael Moore" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "Does clipvolume need Accessibility permission?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. It never asks for Accessibility. The master volume, device picker and the list of apps making sound need no permission at all. The per-app mixer asks once for System Audio Recording, and play/pause asks once per media app for Automation." } },
+    { "@type": "Question", "name": "Why does the mixer need System Audio Recording?",
+      "acceptedAnswer": { "@type": "Answer", "text": "clipvolume uses Core Audio process taps to listen to each app's audio so it can draw a level meter and, when you turn an app down, pass that app's audio through at the new volume. macOS files that capability under System Audio Recording. Nothing is recorded or saved, and clipvolume makes no network connections." } },
+    { "@type": "Question", "name": "Can it pause a YouTube tab?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It can mute one instantly, but browsers don't expose play/pause to other apps, so a tab can't be paused from outside. Spotify, Music, TV, QuickTime Player and VLC can be paused and resumed." } },
+    { "@type": "Question", "name": "Why isn't it on the Mac App Store?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Core Audio process taps don't work reliably inside the App Store sandbox, so clipvolume is distributed directly, signed with a Developer ID and notarized by Apple. It opens with no security warning." } },
+    { "@type": "Question", "name": "What does it cost?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It's free for personal use under the CC BY-NC 4.0 license, and the source is on GitHub." } }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#6f9d9b; --teal-deep:#3f6f6d; --teal-soft:#c6dedc; --teal-tint:#eef6f5;
+  --ink:#262c2c; --ink-soft:#5d6666; --cream:#fcfefd; --line:rgba(38,44,44,.10);
+  --max:1080px; --r:18px; --shadow:0 18px 50px -22px rgba(40,70,68,.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;background:var(--cream)}
+body{font-family:'Outfit',-apple-system,system-ui,sans-serif;color:var(--ink);background:transparent;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* animated background field */
+#bgfx{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;
+  background:linear-gradient(125deg,#fcfefd 0%,#e9f3f2 45%,#f2f8f7 60%,#fcfefd 100%);
+  background-size:240% 240%;animation:wash 26s ease-in-out infinite}
+@keyframes wash{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.blob{position:absolute;border-radius:50%;filter:blur(72px);opacity:.5;will-change:transform,translate}
+.blob.b1{width:540px;height:540px;background:radial-gradient(circle,#c9e2df,transparent 68%);top:-150px;left:-120px;animation:drift1 28s ease-in-out infinite}
+.blob.b2{width:470px;height:470px;background:radial-gradient(circle,#bdd9d6,transparent 68%);top:34%;right:-170px;animation:drift2 32s ease-in-out infinite}
+.blob.b3{width:620px;height:620px;background:radial-gradient(circle,#d6e9e7,transparent 68%);bottom:-220px;left:22%;animation:drift1 36s ease-in-out infinite}
+.bgclip{position:absolute;color:var(--teal);opacity:.07;will-change:transform,translate}
+.bgclip.c1{top:11%;left:7%;width:120px;height:120px;rotate:-18deg;animation:drift2 19s ease-in-out infinite}
+.bgclip.c2{top:44%;left:80%;width:170px;height:170px;rotate:24deg;animation:drift1 23s ease-in-out infinite}
+.bgclip.c3{top:73%;left:12%;width:140px;height:140px;rotate:9deg;animation:drift2 27s ease-in-out infinite}
+.bgclip.c4{top:88%;left:66%;width:104px;height:104px;rotate:-8deg;animation:drift1 21s ease-in-out infinite}
+@keyframes drift1{0%,100%{translate:0 0}50%{translate:26px -30px}}
+@keyframes drift2{0%,100%{translate:0 0}50%{translate:-28px 22px}}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--teal),var(--teal-deep));z-index:60;transition:width .08s linear}
+
+/* powered-by credit (top-left) */
+.poweredby{position:fixed;top:14px;left:16px;z-index:55;display:inline-flex;align-items:center;gap:7px;
+  background:rgba(38,44,44,.85);backdrop-filter:blur(8px);color:#fff;text-decoration:none;
+  padding:6px 12px;border-radius:999px;font-size:10.5px;font-weight:600;letter-spacing:.04em;
+  transition:opacity .35s ease,transform .35s ease,background .2s}
+.poweredby:hover{background:rgba(38,44,44,.98)}
+.poweredby span{opacity:.78;text-transform:uppercase}
+.poweredby img{height:13px;width:auto;display:block}
+.poweredby.hide{opacity:0;pointer-events:none;transform:translateY(-8px)}
+@media (max-width:520px){.poweredby span{display:none}}
+.serif{font-family:'Instrument Serif',Georgia,serif;font-style:italic}
+a{color:inherit}
+.wrap{width:100%;max-width:var(--max);margin:0 auto;padding:0 24px}
+h1,h2,h3{line-height:1.08;letter-spacing:-.02em;font-weight:700}
+section{position:relative}
+
+/* nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 24px;background:rgba(252,254,253,.82);backdrop-filter:blur(12px);border-bottom:1px solid transparent;
+  transform:translateY(-110%);transition:transform .4s ease,border-color .4s}
+nav.show{transform:translateY(0);border-color:var(--line)}
+nav .brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:18px;letter-spacing:-.02em}
+nav .brand img{width:28px;height:28px;border-radius:7px}
+.btn{display:inline-flex;align-items:center;gap:9px;border:none;border-radius:999px;cursor:pointer;
+  font-family:inherit;font-weight:600;font-size:15px;padding:11px 22px;background:var(--ink);color:#fff;
+  transition:transform .18s ease,box-shadow .25s ease,opacity .2s,background .2s;text-decoration:none}
+.btn:hover{transform:translateY(-2px);box-shadow:0 12px 28px -10px rgba(38,44,44,.55)}
+.btn:active{transform:translateY(0) scale(.98)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn[disabled]{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.kbd{font-family:'Outfit';font-weight:600;font-size:.86em;background:#fff;border:1px solid var(--line);
+  border-bottom-width:2px;border-radius:7px;padding:2px 8px;color:var(--ink);display:inline-block;line-height:1.4}
+
+/* hero */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:120px 24px 80px;background:radial-gradient(120% 90% at 50% 0%,rgba(198,222,220,.55) 0%,rgba(252,254,253,0) 62%);overflow:hidden}
+.hero-inner{position:relative;z-index:2;max-width:760px}
+.herolock{transform:translateY(-40px)}
+.heromark{width:128px;height:128px;margin:0 auto 8px;display:block;filter:drop-shadow(0 8px 16px rgba(63,111,109,.30))}
+.herodiv{width:516px;max-width:80vw;height:4px;border-radius:3px;background:var(--teal-deep);margin:0 auto;opacity:.85}
+.hero h1{font-size:clamp(40px,7vw,76px);font-weight:800}
+.hero .sub{font-size:clamp(18px,2.4vw,23px);color:var(--ink-soft);margin:20px auto 0;max-width:560px}
+.hero .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:36px}
+.hero .meta{margin-top:18px;font-size:14px;color:var(--ink-soft)}
+.scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);z-index:2;color:var(--teal-deep);
+  font-size:13px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:6px;opacity:.8;text-decoration:none}
+.scrollcue .arrow{width:22px;height:22px;animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+
+/* generic section header */
+.shead{text-align:center;max-width:640px;margin:0 auto 54px}
+.shead .kicker{font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.shead h2{font-size:clamp(30px,4.4vw,46px);margin-top:12px}
+.shead p{color:var(--ink-soft);font-size:18px;margin-top:14px}
+.pad{padding:100px 0}
+.sectiondiv{display:flex;align-items:center;justify-content:center;gap:20px;max-width:340px;margin:0 auto;padding:6px 24px}
+.sectiondiv .ln{height:1.5px;flex:1;border-radius:2px;opacity:.5;background:linear-gradient(90deg,transparent,var(--teal))}
+.sectiondiv .ln.r{background:linear-gradient(90deg,var(--teal),transparent)}
+.sectiondiv svg{width:46px;height:46px;flex-shrink:0}
+.pad-tint{background:rgba(198,222,220,.30)}
+
+/* value cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:28px;transition:transform .3s ease,box-shadow .3s ease}
+.card:hover{transform:translateY(-6px);box-shadow:var(--shadow)}
+.card .ic{width:46px;height:46px;border-radius:13px;background:var(--teal-tint);color:var(--teal-deep);
+  display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.card .ic svg{width:24px;height:24px}
+.card h3{font-size:20px}
+.card p{color:var(--ink-soft);font-size:15.5px;margin-top:8px}
+
+/* how-to steps */
+.step{display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center;margin-bottom:120px}
+.step:last-child{margin-bottom:0}
+.step.rev .copy{order:2}
+.stepnum{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;
+  background:var(--teal-deep);color:#fff;font-weight:700;font-size:18px;margin-bottom:18px}
+.step h3{font-size:clamp(26px,3.4vw,36px)}
+.step p{color:var(--ink-soft);font-size:17px;margin-top:14px;max-width:440px}
+.step .demo{display:flex;align-items:center;justify-content:center;min-height:320px}
+
+/* menu bar strip + popover mock */
+.menubar{width:100%;max-width:380px;margin:0 auto}
+.mbar{height:30px;border-radius:9px 9px 0 0;background:rgba(255,255,255,.75);border:1px solid var(--line);border-bottom:none;
+  display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:0 14px;font-size:12px;color:var(--ink-soft)}
+.mbar svg{width:15px;height:15px;color:var(--ink)}
+.mbar .active{background:rgba(38,44,44,.1);border-radius:5px;padding:3px 6px;display:flex}
+.pop{position:relative;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:14px;
+  box-shadow:var(--shadow);width:100%;max-width:330px;margin:8px 0 0 auto;font-size:13px;overflow:hidden}
+.pop::before{content:"";position:absolute;top:-7px;right:26px;width:12px;height:12px;background:#fff;border-left:1px solid var(--line);border-top:1px solid var(--line);transform:rotate(45deg)}
+.prow{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.prow svg{width:15px;height:15px;flex-shrink:0;color:var(--ink)}
+.slider{flex:1;height:4px;border-radius:2px;background:rgba(38,44,44,.14);position:relative}
+.slider::before{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--v,60%);border-radius:2px;background:var(--teal-deep)}
+.slider::after{content:"";position:absolute;top:50%;left:var(--v,60%);width:16px;height:16px;border-radius:50%;background:#fff;
+  border:1px solid rgba(0,0,0,.15);box-shadow:0 1px 3px rgba(0,0,0,.2);transform:translate(-50%,-50%)}
+.pct{width:34px;text-align:right;font-size:11.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.device{padding:0 14px 10px;font-size:11.5px;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
+.device svg{width:12px;height:12px}
+.pdiv{height:1px;background:var(--line);margin:0 12px}
+.mixrow{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;font-weight:600;cursor:default}
+.mixrow small{font-weight:400;color:var(--ink-soft);margin-left:6px}
+.mixrow .chev{width:11px;height:11px;transition:transform .35s ease}
+.pop.open .mixrow .chev{transform:rotate(90deg)}
+.apps{max-height:0;overflow:hidden;transition:max-height .5s ease}
+.pop.open .apps{max-height:300px}
+.app{display:flex;align-items:center;gap:10px;padding:7px 14px}
+.app .aic{width:22px;height:22px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.app .aic svg{width:13px;height:13px;color:#fff}
+.app .nm{width:88px;flex-shrink:0}
+.app .nm b{display:block;font-weight:500;font-size:12.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app .nm i{display:block;font-style:normal;font-size:10.5px;color:var(--ink-soft);line-height:1.3}
+.meter{height:4px;border-radius:2px;background:rgba(38,44,44,.12);margin-top:4px;overflow:hidden}
+.meter::before{content:"";display:block;height:100%;border-radius:2px;background:#34c759;width:40%;animation:meter var(--d,1.3s) ease-in-out infinite}
+.meter.hot::before{background:#ff3b30}
+.meter.off::before{width:0;animation:none}
+@keyframes meter{0%{width:22%}18%{width:70%}36%{width:45%}55%{width:88%}72%{width:38%}100%{width:22%}}
+.app .slider{max-width:90px}
+.app .ib{width:16px;height:16px;flex-shrink:0;color:var(--ink)}
+.app .ib.red{color:#ff3b30}
+.app.dim{opacity:.55}
+.pfoot{display:flex;justify-content:space-between;padding:9px 14px;font-size:11.5px;color:var(--ink-soft);background:rgba(238,246,245,.6)}
+.cursor{position:absolute;width:18px;height:18px;z-index:5;pointer-events:none;opacity:0;transition:opacity .25s,transform .6s cubic-bezier(.4,0,.2,1);filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+.cursor.show{opacity:1}
+
+/* step 3 — payoff */
+.step.payoff{display:block;text-align:center;margin-bottom:0}
+.payoffcopy{max-width:680px;margin:0 auto 52px}
+.step.payoff .stepnum{width:56px;height:56px;font-size:23px;margin-bottom:22px}
+.step.payoff h3{font-size:clamp(34px,5.2vw,58px);line-height:1.05}
+.step.payoff p{font-size:19px;margin:16px auto 0;max-width:580px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:34px 30px;max-width:860px;margin:0 auto;align-items:start;text-align:left}
+.duo > div{display:flex;flex-direction:column}
+.duocap{order:-1;margin:0 0 14px;min-height:2.3em;display:flex;flex-wrap:wrap;gap:0 .3em;align-items:flex-end;justify-content:center;
+  font-size:18px;line-height:1.2;font-weight:600;color:var(--ink-soft);text-align:center}
+.duocap b{color:var(--teal-deep);font-weight:800}
+.duo .pop{max-width:none;margin:0}
+.duo .pop::before{display:none}
+
+/* permissions table */
+.perm{max-width:760px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.perm .row{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;padding:16px 22px;border-bottom:1px solid var(--line);align-items:center}
+.perm .row:last-child{border-bottom:none}
+.perm .row.h{background:var(--teal-tint);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-deep)}
+.perm .f{font-weight:600}
+.perm .f small{display:block;font-weight:400;color:var(--ink-soft);font-size:13px}
+.perm .p{font-size:14.5px;color:var(--ink-soft)}
+.perm .p.none{color:#1f8a4c;font-weight:600}
+.capband{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:34px}
+.chip{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);
+  padding:12px 20px;border-radius:14px;font-weight:600;font-size:15px;transition:transform .3s}
+.chip:hover{transform:translateY(-4px)}
+.chip svg{width:18px;height:18px;color:var(--teal-deep)}
+.chip.no{text-decoration:line-through;color:var(--ink-soft)}
+.chip.no svg{color:var(--ink-soft)}
+
+/* callout */
+.callout{max-width:760px;margin:54px auto 0;background:#fff;border:1px solid var(--line);border-left:4px solid var(--teal);
+  border-radius:12px;padding:22px 26px}
+.callout h4{font-size:17px;display:flex;align-items:center;gap:9px}
+.callout h4 svg{width:18px;height:18px;color:var(--teal-deep)}
+.callout p{color:var(--ink-soft);font-size:15px;margin-top:8px}
+.callout code{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--teal-tint);padding:2px 7px;border-radius:6px}
+
+/* faq */
+.faq{max-width:760px;margin:0 auto}
+.faq details{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.faq summary{cursor:pointer;padding:16px 22px;font-weight:600;font-size:16.5px;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary .chev{width:18px;height:18px;flex-shrink:0;transition:transform .3s;color:var(--teal-deep)}
+.faq details[open] summary .chev{transform:rotate(180deg)}
+.faq .a{padding:0 22px 18px;font-size:15px;color:var(--ink-soft);line-height:1.65}
+
+/* download */
+#download{background:radial-gradient(120% 100% at 50% 100%,rgba(198,222,220,.42),rgba(252,254,253,0))}
+.dlcard{max-width:620px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:24px;
+  box-shadow:var(--shadow);padding:48px 40px;text-align:center}
+.dlcard .dlmark{width:84px;height:84px;margin:0 auto 18px;border-radius:20px;display:block}
+.dlcard h2{font-size:clamp(30px,4vw,42px)}
+.dlcard p.lead{color:var(--ink-soft);font-size:18px;margin-top:12px}
+.pricepill{display:inline-block;background:var(--teal-tint);color:var(--teal-deep);font-weight:700;
+  padding:7px 18px;border-radius:999px;margin-top:18px;font-size:15px}
+.terms{text-align:left;background:var(--teal-tint);border-radius:14px;margin:28px 0 8px;overflow:hidden}
+.terms summary{cursor:pointer;padding:14px 20px;font-weight:600;font-size:15px;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.terms summary::-webkit-details-marker{display:none}
+.terms summary .chev{transition:transform .3s}
+.terms[open] summary .chev{transform:rotate(180deg)}
+.terms .tbody{padding:0 20px 18px;font-size:13.5px;color:var(--ink-soft);line-height:1.65}
+.terms .tbody ul{margin:8px 0 0 18px}
+.terms .tbody li{margin:4px 0}
+.tlink{color:var(--teal-deep);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.tlink:hover{color:var(--ink)}
+.terms .tbody p.more{margin-top:12px}
+.agree{display:flex;align-items:flex-start;gap:12px;text-align:left;margin:18px 4px 24px;cursor:pointer;user-select:none}
+.agree input{margin-top:3px;width:20px;height:20px;accent-color:var(--teal-deep);cursor:pointer;flex-shrink:0}
+.agree label{font-size:14.5px;color:var(--ink);cursor:pointer}
+.dlbtn-wrap{position:relative;display:inline-block}
+.dlbtn{font-size:18px;padding:16px 40px}
+.dlnote{font-size:13px;color:var(--ink-soft);margin-top:8px;min-height:18px}
+.dlmeta{font-size:12px;color:var(--ink-soft);opacity:.7;margin-top:14px;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+
+/* footer */
+footer{background:var(--ink);color:#dfe9e8;padding:54px 0 40px}
+footer .frow{display:flex;flex-wrap:wrap;gap:26px;justify-content:space-between;align-items:center}
+footer .fbrand{display:flex;align-items:center;gap:11px;font-weight:600;font-size:19px;color:#fff}
+footer .fbrand img{width:30px;height:30px;border-radius:8px}
+footer .flinks{display:flex;gap:24px;flex-wrap:wrap;font-size:14.5px}
+footer .flinks a{color:#c6d9d7;text-decoration:none;transition:color .2s}
+footer .flinks a:hover{color:#fff}
+footer .fine{margin-top:26px;padding-top:22px;border-top:1px solid rgba(255,255,255,.12);font-size:13px;color:#a7bcba}
+footer .fine a{color:#c6dedc}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+
+@media (max-width:760px){
+  .step{grid-template-columns:1fr;gap:30px;margin-bottom:80px}
+  .step.rev .copy{order:0}
+  .step .demo{min-height:auto}
+  .duo{grid-template-columns:1fr;gap:34px;max-width:420px}
+  .payoffcopy{margin-bottom:38px}
+  .perm .row{grid-template-columns:1fr;gap:6px}
+  nav .brand span{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none}
+  .meter::before{width:55%}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<div id="bgfx" aria-hidden="true">
+  <span class="blob b1" data-speed="0.05"></span>
+  <span class="blob b2" data-speed="0.11"></span>
+  <span class="blob b3" data-speed="0.07"></span>
+  <svg class="bgclip c1" data-speed="0.14" viewBox="0 0 24 24"><use href="#clip" width="24" height="24"/></svg>
+  <svg class="bgclip c2" data-speed="-0.10" viewBox="0 0 24 24"><use href="#clip" width="24" height="24"/></svg>
+  <svg class="bgclip c3" data-speed="0.12" viewBox="0 0 24 24"><use href="#clip" width="24" height="24"/></svg>
+  <svg class="bgclip c4" data-speed="-0.08" viewBox="0 0 24 24"><use href="#clip" width="24" height="24"/></svg>
+</div>
+
+<a class="poweredby" id="poweredby" href="https://www.toyrobotmedia.com" target="_blank" rel="noopener" aria-label="Powered by Toy Robot Media">
+  <span>powered by</span>
+  <img src="img/trmlogo.svg" alt="Toy Robot Media">
+</a>
+
+<!-- shared svg defs -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="clip" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/>
+  </symbol>
+  <symbol id="spk" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M4 9v6h4l5 4V5L8 9H4z"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/>
+  </symbol>
+  <symbol id="spk-mute" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M4 9v6h4l5 4V5L8 9H4z"/>
+    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M16 9.5l5 5M21 9.5l-5 5"/>
+  </symbol>
+  <symbol id="pause" viewBox="0 0 24 24"><path fill="currentColor" d="M7 5h4v14H7zM13 5h4v14h-4z"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path fill="currentColor" d="M7 5l12 7-12 7z"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="hifi" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="14" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="7.5" r="1" fill="currentColor"/></symbol>
+  <symbol id="arrowcur" viewBox="0 0 24 24"><path d="M5 3l14 8-6 1.5L16 19l-2.5 1-3-6.5L6 18z" fill="#fff" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/></symbol>
+</svg>
+
+<nav id="nav" aria-label="Primary">
+  <div class="brand">
+    <img src="img/appicon_256.png" alt="" aria-hidden="true">
+    <span>clipvolume</span>
+  </div>
+  <a href="#download" class="btn">Download</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="herolock">
+      <img class="heromark" data-speed="0.07" src="img/appicon_1024.png" alt="clipvolume logo">
+      <h1>clipvolume</h1>
+    </div>
+    <div class="shead" style="margin:78px auto 0">
+      <div class="herodiv" aria-hidden="true"></div>
+      <h2>Who's making that noise?</h2>
+      <p>Eight apps open, a call starts, and something starts playing. Find it, turn it down, mute it, or pause it — from one speaker icon.</p>
+    </div>
+    <div class="cta-row">
+      <a href="#download" class="btn">Download for macOS</a>
+      <a href="#how" class="btn ghost">See how it works</a>
+    </div>
+    <p class="meta">macOS 14.4+ · free for personal use · open source</p>
+  </div>
+  <a href="#what" class="scrollcue" aria-label="Scroll down">
+    scroll
+    <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+  </a>
+</header>
+
+<!-- WHAT IT DOES -->
+<section id="what" class="pad">
+  <div class="wrap">
+    <div class="shead reveal">
+      <div class="kicker">the mixer macOS forgot</div>
+      <h2>One speaker icon. Every app.</h2>
+      <p>Windows has had a per-app volume mixer for twenty years. Your Mac has one now.</p>
+    </div>
+    <div class="cards">
+      <div class="card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h3l3-7 4 14 3-7h5"/></svg></div>
+        <h3>Finds the source</h3>
+        <p>Every app producing audio, listed by name with a live level meter — so the one that's bouncing is the one making noise.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h16M4 16h16"/><circle cx="9" cy="8" r="2.5" fill="#fff"/><circle cx="15" cy="16" r="2.5" fill="#fff"/></svg></div>
+        <h3>Per-app volume &amp; mute</h3>
+        <p>Each app gets its own slider and mute button, relative to the master. Relaunch the app and it comes back at 100%.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></div>
+        <h3>Pause the right thing</h3>
+        <p>Play/pause Spotify, Music, TV, QuickTime or VLC directly — even Spotify playing on your office speakers — instead of guessing what the ⏯ key will hit.</p>
+      </div>
+      <div class="card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 7.8-8 9-4.6-1.2-8-4.5-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3>No drivers. No Accessibility.</h3>
+        <p>Built on Apple's own Core Audio process taps. No virtual audio device, no kernel extension, no Accessibility permission — ever.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sectiondiv" aria-hidden="true">
+  <span class="ln"></span>
+  <svg viewBox="0 0 100 100"><use href="#clip" x="30" y="22" width="34" height="56" color="#6f9d9b" opacity=".4"/><use href="#clip" x="42" y="26" width="34" height="56" color="#3f6f6d"/></svg>
+  <span class="ln r"></span>
+</div>
+
+<!-- HOW TO USE -->
+<section id="how" class="pad pad-tint">
+  <div class="wrap">
+    <div class="shead reveal">
+      <div class="kicker">how to use it</div>
+      <h2>Click. Look. Fix.</h2>
+      <p>It replaces the Sound icon in your menu bar and stays out of the way until something starts playing that shouldn't be.</p>
+    </div>
+
+    <!-- step 1 -->
+    <div class="step reveal">
+      <div class="copy">
+        <div class="stepnum">1</div>
+        <h3>Click the speaker</h3>
+        <p>Master volume, mute, and an output-device picker — the three things Control Center buried. Nothing to set up, no permission to grant.</p>
+      </div>
+      <div class="demo">
+        <div class="menubar">
+          <div class="mbar">
+            <span class="active"><svg><use href="#spk"/></svg></span>
+            <span>Thu 2:14 PM</span>
+          </div>
+          <div class="pop" id="pop1">
+            <div class="prow"><svg><use href="#spk"/></svg><div class="slider" style="--v:62%"></div><span class="pct">62%</span></div>
+            <div class="device"><svg><use href="#hifi"/></svg> MacBook Pro Speakers</div>
+            <div class="pdiv"></div>
+            <div class="mixrow">Mixer<small>· 3 playing</small><span style="flex:1"></span><svg class="chev"><use href="#chev"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- step 2 -->
+    <div class="step rev reveal">
+      <div class="copy">
+        <div class="stepnum">2</div>
+        <h3>Open the mixer</h3>
+        <p>Hit <strong>Mixer ›</strong> and every app that's producing audio drops down with a bouncing level meter, its own slider, mute — and play/pause where the app supports it. The guilty one is the one that's moving.</p>
+      </div>
+      <div class="demo">
+        <div class="menubar">
+          <div class="mbar">
+            <span class="active"><svg><use href="#spk"/></svg></span>
+            <span>Thu 2:14 PM</span>
+          </div>
+          <div class="pop open" id="pop2">
+            <div class="prow"><svg><use href="#spk"/></svg><div class="slider" style="--v:62%"></div><span class="pct">62%</span></div>
+            <div class="device"><svg><use href="#hifi"/></svg> MacBook Pro Speakers</div>
+            <div class="pdiv"></div>
+            <div class="mixrow">Mixer<span style="flex:1"></span><svg class="chev"><use href="#chev"/></svg></div>
+            <div class="apps">
+              <div class="app">
+                <span class="aic" style="background:linear-gradient(135deg,#4285f4,#ea4335)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.5" fill="#fff"/></svg></span>
+                <span class="nm"><b>Google Chrome</b><span class="meter" style="--d:1.1s"></span></span>
+                <div class="slider" style="--v:100%"></div>
+                <svg class="ib"><use href="#spk"/></svg>
+              </div>
+              <div class="app">
+                <span class="aic" style="background:#1db954"><svg viewBox="0 0 24 24"><path d="M6 9c4-1.2 8.5-.9 12 1M7 12.5c3.3-1 7-.7 10 .9M8 16c2.6-.8 5.5-.6 8 .7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+                <span class="nm"><b>Spotify</b><span class="meter" style="--d:1.6s"></span></span>
+                <div class="slider" style="--v:45%"></div>
+                <svg class="ib"><use href="#pause"/></svg>
+                <svg class="ib"><use href="#spk"/></svg>
+              </div>
+              <div class="app">
+                <span class="aic" style="background:#2d8cff"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2" fill="#fff"/><path d="M16 10l5-3v10l-5-3z" fill="#fff"/></svg></span>
+                <span class="nm"><b>zoom.us</b><span class="meter" style="--d:0.9s"></span></span>
+                <div class="slider" style="--v:100%"></div>
+                <svg class="ib"><use href="#spk"/></svg>
+              </div>
+            </div>
+            <div class="pfoot"><span>☐ Launch at Login</span><span>Quit</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- step 3 — payoff -->
+    <div class="step payoff reveal">
+      <div class="payoffcopy">
+        <div class="stepnum">3</div>
+        <h3>Pause Spotify.<br>Not the meeting.</h3>
+        <p>Spotify on the office speakers, YouTube in your headphones, and the ⏯ key pauses… whichever one macOS feels like. clipvolume talks to each app directly.</p>
+      </div>
+      <div class="duo">
+        <div>
+          <p class="duocap"><b>Pause</b> the one playing across the room</p>
+          <div class="pop open" id="pop3a">
+            <div class="mixrow">Mixer<span style="flex:1"></span><svg class="chev"><use href="#chev"/></svg></div>
+            <div class="apps">
+              <div class="app">
+                <span class="aic" style="background:linear-gradient(135deg,#4285f4,#ea4335)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.5" fill="#fff"/></svg></span>
+                <span class="nm"><b>Google Chrome</b><span class="meter" style="--d:1.2s"></span></span>
+                <div class="slider" style="--v:100%"></div>
+                <svg class="ib"><use href="#spk"/></svg>
+              </div>
+              <div class="app" id="spotrow">
+                <span class="aic" style="background:#1db954"><svg viewBox="0 0 24 24"><path d="M6 9c4-1.2 8.5-.9 12 1M7 12.5c3.3-1 7-.7 10 .9M8 16c2.6-.8 5.5-.6 8 .7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+                <span class="nm" style="width:auto;flex:1"><b>Spotify</b><i id="spotstate">Playing on another device</i></span>
+                <svg class="ib" id="spotbtn"><use href="#pause"/></svg>
+              </div>
+            </div>
+            <svg class="cursor" id="cur3a"><use href="#arrowcur"/></svg>
+          </div>
+        </div>
+        <div>
+          <p class="duocap"><b>Mute</b> the tab you can't pause</p>
+          <div class="pop open" id="pop3b">
+            <div class="mixrow">Mixer<span style="flex:1"></span><svg class="chev"><use href="#chev"/></svg></div>
+            <div class="apps">
+              <div class="app" id="chromerow">
+                <span class="aic" style="background:linear-gradient(135deg,#4285f4,#ea4335)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="3.5" fill="#fff"/></svg></span>
+                <span class="nm"><b>Google Chrome</b><span class="meter hot" id="chromemeter" style="--d:0.8s"></span></span>
+                <div class="slider" id="chromeslider" style="--v:100%"></div>
+                <svg class="ib" id="chromebtn"><use href="#spk"/></svg>
+              </div>
+              <div class="app">
+                <span class="aic" style="background:#2d8cff"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2" fill="#fff"/><path d="M16 10l5-3v10l-5-3z" fill="#fff"/></svg></span>
+                <span class="nm"><b>zoom.us</b><span class="meter" style="--d:1.0s"></span></span>
+                <div class="slider" style="--v:100%"></div>
+                <svg class="ib"><use href="#spk"/></svg>
+              </div>
+            </div>
+            <svg class="cursor" id="cur3b"><use href="#arrowcur"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sectiondiv" aria-hidden="true">
+  <span class="ln"></span>
+  <svg viewBox="0 0 100 100"><use href="#clip" x="30" y="22" width="34" height="56" color="#6f9d9b" opacity=".4"/><use href="#clip" x="42" y="26" width="34" height="56" color="#3f6f6d"/></svg>
+  <span class="ln r"></span>
+</div>
+
+<!-- PERMISSIONS -->
+<section id="permissions" class="pad">
+  <div class="wrap">
+    <div class="shead reveal">
+      <div class="kicker">what it asks for</div>
+      <h2>Two prompts, both&nbsp;honest</h2>
+      <p>Most of the app needs nothing at all. Here's exactly which feature needs what, and why.</p>
+    </div>
+    <div class="perm reveal">
+      <div class="row h"><span>Feature</span><span>Permission</span></div>
+      <div class="row"><span class="f">Master volume, mute, device picker<small>Standard Core Audio device controls</small></span><span class="p none">None</span></div>
+      <div class="row"><span class="f">Which apps are making sound<small>Core Audio's own process list</small></span><span class="p none">None</span></div>
+      <div class="row"><span class="f">Level meters, per-app volume &amp; mute<small>Core Audio process taps: listen to one app's audio, and when you turn it down, play it back quieter</small></span><span class="p"><strong>System Audio Recording</strong> — one prompt, first time you open the Mixer</span></div>
+      <div class="row"><span class="f">Play / pause<small>Spotify, Music, TV, QuickTime Player, VLC</small></span><span class="p"><strong>Automation</strong> — one prompt per app, first time you press ⏯</span></div>
+    </div>
+    <div class="capband reveal">
+      <span class="chip no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg> Accessibility</span>
+      <span class="chip no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 12h8M12 8v8"/></svg> Virtual audio driver</span>
+      <span class="chip no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l16-16M4 4l16 16"/></svg> Kernel extension</span>
+      <span class="chip no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg> Network access</span>
+    </div>
+
+    <div class="callout reveal">
+      <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg> Why "System Audio Recording" for a volume app?</h4>
+      <p>macOS has no per-app volume API. The only driverless way to control one app's sound is to <em>tap</em> it: clipvolume asks Core Audio to mute that app at the speakers and hands the audio back to clipvolume, which plays it at the volume you chose. Apple files that capability under System Audio Recording. Apps you haven't touched are never routed through clipvolume, nothing is written to disk, and the app makes no network connections — the <a class="tlink" href="https://github.com/mrmichaelmoorecom-sys/clipvolume">source</a> is right there.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="pad pad-tint">
+  <div class="wrap">
+    <div class="shead reveal">
+      <div class="kicker">questions</div>
+      <h2>The short answers</h2>
+    </div>
+    <div class="faq reveal">
+      <details>
+        <summary>Can it pause a YouTube tab? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="a">It can mute one instantly. Browsers don't expose play/pause to other apps, so a tab can't be <em>paused</em> from outside — Spotify, Music, TV, QuickTime Player and VLC can.</div>
+      </details>
+      <details>
+        <summary>How does it know Spotify is playing on my office speakers? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="a">When Spotify is playing via Spotify Connect it makes no sound on your Mac, so it wouldn't appear in a normal mixer. clipvolume asks the Spotify app for its state and shows it as a row anyway — <em>Playing on another device</em> — with a pause button that works.</div>
+      </details>
+      <details>
+        <summary>What happens to my per-app settings? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="a">They last as long as the app does. Quit Spotify and relaunch it and it's back at 100%, unmuted. Muted apps keep their row while they're running, even when they go quiet, so you can always unmute.</div>
+      </details>
+      <details>
+        <summary>Does it add latency? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="a">Only for apps you've turned down or muted, and only a few milliseconds — the audio goes through one extra Core Audio buffer. Apps at 100% are never touched.</div>
+      </details>
+      <details>
+        <summary>Why isn't it on the Mac App Store? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="a">Process taps don't work reliably inside the App Store sandbox. So it ships the way SoundSource and Loopback do: direct download, signed with a Developer ID, notarized by Apple, no security warning.</div>
+      </details>
+      <details>
+        <summary>Which macOS versions? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="a">macOS 14.4 (Sonoma) or later — that's when Apple gave process taps their own permission. Apple silicon and Intel.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOAD -->
+<section id="download" class="pad">
+  <div class="wrap">
+    <div class="dlcard reveal">
+      <img class="dlmark" src="img/appicon_256.png" alt="clipvolume">
+      <h2>Get clipvolume</h2>
+      <p class="lead">Free for personal use, open source, and about as light as a menu bar app gets.</p>
+      <div class="pricepill">Free for personal use · CC BY-NC 4.0 · macOS 14.4+</div>
+
+      <details class="terms">
+        <summary>License &amp; what you're agreeing to
+          <svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="tbody">
+          clipvolume is © 2026 Michael Moore, licensed under
+          <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener" class="tlink">Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)</a>.
+          By downloading you acknowledge:
+          <ul>
+            <li>You're free to <strong>use, share and adapt</strong> it for <strong>non-commercial</strong> purposes.</li>
+            <li>You must give <strong>appropriate attribution</strong> to the author.</li>
+            <li><strong>Commercial use is not permitted</strong> without permission.</li>
+            <li>The software is provided <strong>“as is”</strong>, with no warranty, and the author is not liable for any damages.</li>
+            <li>The mixer asks for <strong>System Audio Recording</strong>; nothing is recorded, saved, or sent anywhere — the app makes no network connections.</li>
+            <li>The app is <strong>signed with a Developer ID and notarized by Apple</strong>, so it opens normally — no security warning.</li>
+          </ul>
+          <p class="more"><a href="LICENSE" target="_blank" rel="noopener" class="tlink">Read the full license text &#8599;</a></p>
+        </div>
+      </details>
+
+      <label class="agree" for="agree">
+        <input type="checkbox" id="agree" aria-describedby="dlnote">
+        <span>I agree to the <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener" class="tlink">CC BY-NC 4.0 license</a> terms above, and understand the app is provided as-is.</span>
+      </label>
+
+      <div class="dlbtn-wrap" id="dlwrap">
+        <a href="#" id="dlbtn" class="btn dlbtn" aria-disabled="true" disabled
+           data-href="https://github.com/mrmichaelmoorecom-sys/clipvolume/releases/latest/download/clipvolume.dmg" download>
+           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>
+           Download for macOS
+        </a>
+      </div>
+      <p class="dlmeta" id="dlmeta">v0.1.0</p>
+      <p class="dlnote" id="dlnote">Tick the box to enable the download.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="frow">
+      <div class="fbrand">
+        <img src="img/appicon_256.png" alt="" aria-hidden="true">
+        clipvolume
+      </div>
+      <div class="flinks">
+        <a href="#what">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#permissions">Permissions</a>
+        <a href="#download">Download</a>
+        <a href="privacy/">Privacy</a>
+        <a href="https://clipandcue.com" target="_blank" rel="noopener">clipandcue</a>
+        <a href="https://clipandnote.com" target="_blank" rel="noopener">clipandnote</a>
+        <a href="LICENSE" target="_blank" rel="noopener">License</a>
+        <a href="https://github.com/mrmichaelmoorecom-sys/clipvolume/" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/mrmichaelmoorecom-sys/clipvolume/issues/new?labels=bug&title=Bug%20report&body=**What%20happened%3F**%0A%0A**Steps%20to%20reproduce%3A**%0A1.%20%0A2.%20%0A%0A**macOS%20version%3A**%20%0A**clipvolume%20version%3A**%20" target="_blank" rel="noopener">Report a bug</a>
+        <a href="https://buymeacoffee.com/mrmichaelmoore" target="_blank" rel="noopener">☕ Buy me a coffee</a>
+      </div>
+    </div>
+    <div class="fine">
+      © <span id="yr"></span> Michael Moore · clipvolume · Licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a> · Requires macOS 14.4 or later.<br>
+      A menu bar volume control with the per-app mixer macOS never shipped. Not affiliated with Apple.
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  /* live version + release date from GitHub Releases; the hardcoded fallback stays if this fails */
+  (function(){
+    var el = document.getElementById('dlmeta');
+    if(!el || !window.fetch) return;
+    fetch('https://api.github.com/repos/mrmichaelmoorecom-sys/clipvolume/releases/latest', {headers:{'Accept':'application/vnd.github+json'}})
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(rel){
+        if(!rel || !rel.tag_name) return;
+        var when = rel.published_at ? new Date(rel.published_at) : null;
+        var dateStr = when && !isNaN(when) ? when.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '';
+        el.textContent = dateStr ? (rel.tag_name + ' · released ' + dateStr) : rel.tag_name;
+      }).catch(function(){});
+  })();
+
+  /* scroll progress + nav */
+  var nav = document.getElementById('nav'), prog = document.getElementById('progress'), pb = document.getElementById('poweredby');
+  function onScroll(){
+    var h = document.documentElement, sc = h.scrollTop, max = h.scrollHeight - h.clientHeight;
+    prog.style.width = (max>0 ? (sc/max*100) : 0) + '%';
+    var past = sc > window.innerHeight*0.6;
+    nav.classList.toggle('show', past);
+    if(pb) pb.classList.toggle('hide', past);
+  }
+  window.addEventListener('scroll', onScroll, {passive:true}); onScroll();
+
+  /* reveal on scroll */
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  }, {threshold:0.18});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+  /* parallax */
+  var pxEls = Array.prototype.slice.call(document.querySelectorAll('[data-speed]'));
+  function parallax(){
+    var y = window.pageYOffset || document.documentElement.scrollTop;
+    for(var i=0;i<pxEls.length;i++){
+      var s = parseFloat(pxEls[i].getAttribute('data-speed'));
+      pxEls[i].style.transform = 'translate3d(0,'+(y*s).toFixed(2)+'px,0)';
+    }
+  }
+  if(!reduce && pxEls.length){
+    var pTick=false;
+    window.addEventListener('scroll', function(){ if(!pTick){ pTick=true; requestAnimationFrame(function(){ parallax(); pTick=false; }); } }, {passive:true});
+    parallax();
+  }
+
+  function onSee(el, fn){
+    var started=false;
+    new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting && !started){ started=true; fn(); } }); }, {threshold:0.35}).observe(el);
+  }
+  function moveCursor(cur, target, box){
+    var r = target.getBoundingClientRect(), b = box.getBoundingClientRect();
+    cur.style.transform = 'translate('+(r.left - b.left + r.width/2 - 3)+'px,'+(r.top - b.top + r.height/2 - 2)+'px)';
+  }
+
+  /* step 1: the chevron row "opens" the mixer on a loop */
+  (function(){
+    var pop = document.getElementById('pop1'); if(!pop || reduce) return;
+    onSee(pop, function(){ setInterval(function(){ pop.classList.toggle('open'); }, 2600); });
+  })();
+
+  /* step 3a: cursor presses pause on the Spotify row */
+  (function(){
+    var pop = document.getElementById('pop3a'), cur = document.getElementById('cur3a'),
+        btn = document.getElementById('spotbtn'), state = document.getElementById('spotstate');
+    if(!pop) return;
+    if(reduce){ return; }
+    function play(){
+      cur.style.transform = 'translate(40px,140px)'; cur.classList.add('show');
+      setTimeout(function(){ moveCursor(cur, btn, pop); }, 500);
+      setTimeout(function(){ btn.innerHTML = '<use href="#play"/>'; state.textContent = 'Paused'; }, 1500);
+      setTimeout(function(){ cur.classList.remove('show'); }, 2300);
+      setTimeout(function(){ btn.innerHTML = '<use href="#pause"/>'; state.textContent = 'Playing on another device'; }, 4200);
+    }
+    onSee(pop, function(){ play(); setInterval(play, 5200); });
+  })();
+
+  /* step 3b: cursor mutes the Chrome row */
+  (function(){
+    var pop = document.getElementById('pop3b'), cur = document.getElementById('cur3b'),
+        btn = document.getElementById('chromebtn'), meter = document.getElementById('chromemeter'),
+        row = document.getElementById('chromerow');
+    if(!pop) return;
+    if(reduce){ return; }
+    function play(){
+      cur.style.transform = 'translate(40px,140px)'; cur.classList.add('show');
+      setTimeout(function(){ moveCursor(cur, btn, pop); }, 900);
+      setTimeout(function(){ btn.innerHTML = '<use href="#spk-mute"/>'; btn.classList.add('red'); meter.classList.add('off'); }, 1900);
+      setTimeout(function(){ cur.classList.remove('show'); }, 2700);
+      setTimeout(function(){ btn.innerHTML = '<use href="#spk"/>'; btn.classList.remove('red'); meter.classList.remove('off'); }, 4600);
+    }
+    onSee(pop, function(){ setTimeout(play, 400); setInterval(play, 5200); });
+  })();
+
+  /* download gate */
+  var agree = document.getElementById('agree'), dl = document.getElementById('dlbtn'), note = document.getElementById('dlnote'), wrap = document.getElementById('dlwrap');
+  function sync(){
+    var ok = agree.checked;
+    dl.setAttribute('aria-disabled', ok ? 'false' : 'true');
+    if(ok){ dl.removeAttribute('disabled'); dl.href = dl.getAttribute('data-href'); note.textContent = 'Signed with a Developer ID and notarized by Apple.'; }
+    else { dl.setAttribute('disabled',''); dl.href = '#'; note.textContent = 'Tick the box to enable the download.'; }
+  }
+  agree.addEventListener('change', sync); sync();
+  dl.addEventListener('click', function(e){
+    if(!agree.checked){ e.preventDefault(); wrap.classList.remove('shake'); void wrap.offsetWidth; wrap.classList.add('shake'); note.textContent = 'Please agree to the license first.'; }
+  });
+})();
+</script>
+</body>
+</html>

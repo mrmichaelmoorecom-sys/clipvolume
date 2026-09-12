@@ -1,0 +1,4 @@
+# GitHub uses this to power the "Sponsor" button on the repo's main page.
+# Buy Me a Coffee for now; if/when GitHub Sponsors is approved we can add a
+# `github: mrmichaelmoore` line and GitHub will surface both options.
+custom: ['https://buymeacoffee.com/mrmichaelmoore']

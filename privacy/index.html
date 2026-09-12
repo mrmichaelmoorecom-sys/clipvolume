@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — clipvolume</title>
+<meta name="description" content="What clipvolume collects (nothing), what it listens to, and why.">
+<link rel="icon" href="../img/favicon.ico" sizes="any">
+<link rel="canonical" href="https://clipvolume.com/privacy/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--teal:#6f9d9b;--teal-deep:#3f6f6d;--ink:#262c2c;--ink-soft:#5d6666;--cream:#fcfefd;--line:rgba(38,44,44,.10)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;background:var(--cream)}
+body{font-family:'Outfit',-apple-system,system-ui,sans-serif;color:var(--ink);background:linear-gradient(125deg,#fcfefd 0%,#e9f3f2 45%,#f2f8f7 60%,#fcfefd 100%);line-height:1.65;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:var(--teal-deep);text-decoration:none;border-bottom:1px solid rgba(63,111,109,.25)}
+a:hover{border-bottom-color:var(--teal-deep)}
+.wrap{max-width:680px;margin:0 auto;padding:80px 24px 100px}
+.serif{font-family:'Instrument Serif',Georgia,serif;font-style:italic}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft);margin-bottom:48px;border-bottom:none}
+.back:hover{color:var(--ink)}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--teal-deep);font-weight:600;margin-bottom:14px}
+h1{font-size:clamp(36px,5vw,52px);font-weight:600;letter-spacing:-.02em;line-height:1.1;margin-bottom:10px}
+h1 .serif{font-weight:400;color:var(--teal-deep)}
+.lede{font-size:18px;color:var(--ink-soft);margin-bottom:40px}
+h2{font-size:22px;font-weight:600;margin-top:44px;margin-bottom:14px;letter-spacing:-.01em}
+p{margin-bottom:14px}
+ul{margin:8px 0 18px 22px}
+li{margin-bottom:8px}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;background:rgba(63,111,109,.08);padding:2px 6px;border-radius:4px}
+.meta{margin-top:60px;padding-top:28px;border-top:1px solid var(--line);font-size:14px;color:var(--ink-soft)}
+.callout{margin:28px 0;padding:18px 22px;background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← clipvolume.com</a>
+  <div class="eyebrow">Privacy policy</div>
+  <h1>Nothing leaves <span class="serif">your Mac.</span></h1>
+  <p class="lede">clipvolume has no accounts, no analytics, no crash reporting and no network access. This page exists so you can see the reasoning behind the two permissions it asks for.</p>
+
+  <div class="callout">
+    <strong>In one line:</strong> clipvolume listens to app audio only to draw a meter and to play that audio back at the volume you chose. It never records, stores or transmits any of it.
+  </div>
+
+  <h2>What clipvolume collects</h2>
+  <p>Nothing. The app makes no network connections of any kind. There is no telemetry, no update check, no crash reporter. The only files it writes are macOS's standard preferences (<code>~/Library/Preferences/com.clipvolume.app.plist</code>), which hold whether the mixer was left expanded and whether you've seen the permission explainer.</p>
+
+  <h2>System Audio Recording</h2>
+  <p>macOS has no per-app volume API. To show a level meter for an app, or to lower or mute it, clipvolume uses Apple's Core Audio <em>process tap</em> API to receive that app's audio stream. When you turn an app down, the tap silences the app at the output device and clipvolume plays the same audio back at the new volume. macOS classifies this capability as “System Audio Recording”, so that is the permission you'll be asked for the first time you open the Mixer.</p>
+  <ul>
+    <li>Audio is processed in memory, in real time, and discarded. Nothing is written to disk.</li>
+    <li>Apps you haven't adjusted are never routed through clipvolume; while the mixer is open they are tapped read-only for the meter, and those taps are torn down when the panel closes.</li>
+    <li>Microphone input is never opened. The only entitlement the app holds for audio input is the one macOS requires to receive tap audio.</li>
+  </ul>
+
+  <h2>Automation</h2>
+  <p>The play/pause button talks to Spotify, Music, TV, QuickTime Player and VLC over Apple Events (the same mechanism as AppleScript). macOS asks you once per app whether clipvolume may control it. clipvolume only ever reads the player state and the current track title (to show as a tooltip) and sends play/pause. It never launches an app that isn't already running.</p>
+
+  <h2>What it never asks for</h2>
+  <ul>
+    <li>Accessibility</li>
+    <li>Screen Recording (System Audio Recording shares a Settings pane with it, but they are separate switches)</li>
+    <li>Microphone, Camera, Location, Contacts, Calendars, Files &amp; Folders</li>
+  </ul>
+
+  <h2>The website</h2>
+  <p>clipvolume.com is a static site hosted on GitHub Pages. It sets no cookies. The download page calls the public GitHub API once to display the current version number; GitHub's <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">privacy statement</a> applies to that request. Fonts are loaded from Google Fonts.</p>
+
+  <h2>Verifying any of this</h2>
+  <p>The app is open source under CC BY-NC 4.0. The audio path lives in <code>Sources/Audio/ProcessTapChannel.swift</code> and the Apple Events path in <code>Sources/Playback/PlaybackController.swift</code> in the <a href="https://github.com/mrmichaelmoorecom-sys/clipvolume" target="_blank" rel="noopener">GitHub repository</a>.</p>
+
+  <div class="meta">
+    Last updated September 11, 2026 · Questions: <a href="https://github.com/mrmichaelmoorecom-sys/clipvolume/issues" target="_blank" rel="noopener">open an issue</a>.
+  </div>
+</div>
+</body>
+</html>

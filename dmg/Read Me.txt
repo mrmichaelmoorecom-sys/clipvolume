@@ -1,0 +1,42 @@
+clipvolume — Read Me
+==================================================
+
+Thanks for downloading clipvolume — a menu bar volume control
+with the per-app mixer macOS never shipped. See which app is
+making noise, turn it down, mute it, or pause it.
+
+
+INSTALL
+--------------------------------------------------
+Drag the clipvolume icon onto the Applications folder
+(follow the arrow above), then open it from Applications.
+
+This build is signed with a Developer ID and notarized by
+Apple, so it opens normally — no security warning.
+
+
+PERMISSIONS YOU MAY BE ASKED FOR
+--------------------------------------------------
+  • System Audio Recording — the first time you open the
+    Mixer. Needed to meter and control each app's audio.
+    Nothing is recorded or saved.
+  • Automation — the first time you press play/pause on
+    Spotify, Music, TV, QuickTime or VLC (one prompt each).
+
+No Accessibility permission. No audio driver. No kernel extension.
+
+
+USING IT
+--------------------------------------------------
+  • Click the speaker icon in the menu bar → master volume,
+    mute, and output-device picker.
+  • Click  Mixer ›  → every app playing audio, each with a
+    live meter, its own slider, mute, and (where supported)
+    play/pause.
+  • Per-app settings reset when that app relaunches.
+
+
+--------------------------------------------------
+Requires macOS 14.4 (Sonoma) or later.
+Free for personal use · CC BY-NC 4.0
+https://clipvolume.com
