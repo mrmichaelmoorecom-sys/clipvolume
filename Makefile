@@ -1,7 +1,14 @@
 # clipvolume — build, run, package, notarize, release.
 #
-# One-time setup for notarization (needs an app-specific password from appleid.apple.com):
+# Release via Xcode (the usual way):
+#   make project → open clipvolume.xcodeproj → Product ▸ Archive → Distribute App ▸ Direct Distribution
+#   (Xcode notarizes and staples) → Export → then:
+#   make dmg APP="/path/to/exported/clipvolume.app"     # signed dmg around the notarized app
+#   make publish                                        # tag v<version> + GitHub release with the dmg
+#
+# Release from the command line instead (needs a notarytool keychain profile once):
 #   xcrun notarytool store-credentials clipvolume-notary --apple-id you@example.com --team-id HA5AB7JS87
+#   make release
 
 TEAM_ID   := HA5AB7JS87
 PROFILE   ?= clipvolume-notary
@@ -18,8 +25,9 @@ EXPORT    := $(BUILD)/export
 APP       := $(EXPORT)/$(PRODUCT).app
 ZIP       := $(BUILD)/$(PRODUCT).zip
 DMG       := $(BUILD)/$(PRODUCT).dmg
+IDENTITY  := Developer ID Application
 
-.PHONY: project build run stop app dmg notarize release icons clean
+.PHONY: project build run stop app dmg notarize release publish icons clean
 
 ## Generate the Xcode project from project.yml
 project:
@@ -47,9 +55,26 @@ app: project
 		-exportOptionsPlist ExportOptions.plist -exportPath "$(EXPORT)" | grep -E "error|EXPORT" || true
 	@test -d "$(APP)"
 
-## Drag-to-Applications disk image (signed, not yet notarized) → build/clipvolume.dmg
+## Drag-to-Applications disk image → build/clipvolume.dmg
+## Pass APP=/path/to/clipvolume.app to wrap an app you exported (and notarized) from Xcode;
+## otherwise a fresh Release build is used (signed, not notarized).
+ifeq ($(origin APP), command line)
+dmg:
+else
 dmg: app
+endif
+	@test -d "$(APP)" || { echo "error: $(APP) not found"; exit 1; }
 	scripts/make_dmg.sh "$(APP)" "$(DMG)"
+	codesign --force --sign "$(IDENTITY)" "$(DMG)"
+	@stapler validate "$(APP)" >/dev/null 2>&1 && echo "→ $(DMG) (app inside is notarized + stapled)" \
+		|| echo "→ $(DMG) (note: app inside is NOT notarized — use Xcode's Direct Distribution or 'make notarize')"
+
+## Publish a GitHub release for the version in project.yml with build/clipvolume.dmg attached
+publish:
+	@test -f "$(DMG)" || { echo "error: $(DMG) not found — run 'make dmg' first"; exit 1; }
+	git tag -f "v$(VERSION)"
+	git push -f origin "v$(VERSION)"
+	gh release create "v$(VERSION)" "$(DMG)" --title "clipvolume $(VERSION)" --generate-notes
 
 ## Notarize the app, staple it, rebuild the dmg around it, notarize + staple the dmg
 notarize: app
@@ -63,11 +88,8 @@ notarize: app
 	spctl -a -vv -t open --context context:primary-signature "$(DMG)"
 	@echo "→ $(DMG) (notarized)"
 
-## Publish a GitHub release for the version in project.yml with the notarized dmg attached
-release: notarize
-	git tag -f "v$(VERSION)"
-	git push -f origin "v$(VERSION)"
-	gh release create "v$(VERSION)" "$(DMG)" --title "clipvolume $(VERSION)" --generate-notes
+## Command-line equivalent of the Xcode route: notarize, then publish
+release: notarize publish
 
 ## Regenerate AppIcon.icns, favicon, og-image and the dmg background from img/appicon.svg
 icons:

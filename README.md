@@ -59,21 +59,28 @@ the TCC grants persist between builds.
 
 ## Release pipeline
 
-One-time: create an app-specific password at appleid.apple.com, then
+**Via Xcode** (notarization handled by Xcode's Organizer):
+
+1. `make project`, open `clipvolume.xcodeproj`, **Product ▸ Archive**.
+2. In Organizer: **Distribute App ▸ Direct Distribution**. Xcode uploads it for
+   notarization and staples the ticket; when it's done, **Export** the app.
+3. Wrap it and publish:
 
 ```sh
-xcrun notarytool store-credentials clipvolume-notary --apple-id you@example.com --team-id HA5AB7JS87
+make dmg APP="/path/to/exported/clipvolume.app"   # signed drag-to-Applications dmg
+make publish                                      # tag v<version> + GitHub release with the dmg
 ```
 
-Then:
+**From the command line** instead (one-time `xcrun notarytool store-credentials
+clipvolume-notary --apple-id … --team-id HA5AB7JS87` first):
 
 ```sh
-make app        # Release archive → Developer ID export → build/export/clipvolume.app
-make dmg        # + drag-to-Applications dmg (signed, not yet notarized)
-make notarize   # notarize + staple the app, rebuild the dmg, notarize + staple it
-make release    # + tag v<version> and publish a GitHub release with the dmg attached
-make icons      # regenerate AppIcon.icns, favicon, og-image and dmg background from img/appicon.svg
+make release    # archive → export → notarize + staple → dmg → GitHub release
 ```
+
+Other targets: `make app` (Release export only), `make dmg` (dmg around a fresh,
+un-notarized build), `make icons` (regenerate AppIcon.icns, favicon, og-image and
+the dmg background from `img/appicon.svg`).
 
 ## Project layout
 
