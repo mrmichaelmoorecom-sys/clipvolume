@@ -58,17 +58,19 @@ arrow.move(to: CGPoint(x: 377, y: 200)); arrow.line(to: CGPoint(x: 350, y: 227))
 rgb(0x26, 0x2c, 0x2c).setStroke()
 arrow.stroke()
 
-// Headline near the top.
-let text = "Turn it down!!!  — mom"
-var size: CGFloat = 40
-let w40 = NSAttributedString(string: text, attributes: [.font: outfit(40)]).size().width
-if w40 > 600 { size = 40 * 600 / w40 }
+// Headline near the top, with a smaller attribution line under it.
 let para = NSMutableParagraphStyle(); para.alignment = .center
 let glow = NSShadow(); glow.shadowColor = NSColor.white.withAlphaComponent(0.6); glow.shadowBlurRadius = 5
-let astr = NSAttributedString(string: text, attributes: [
-    .font: outfit(size), .foregroundColor: rgb(0x26,0x2c,0x2c), .paragraphStyle: para, .shadow: glow])
-let ts = astr.size()
-astr.draw(at: CGPoint(x: (LW - ts.width)/2, y: LH - 36 - ts.height))
+func centered(_ text: String, size: CGFloat, weight: Int, color: NSColor, top: CGFloat) -> CGFloat {
+    let astr = NSAttributedString(string: text, attributes: [
+        .font: outfit(size, weight: weight), .foregroundColor: color, .paragraphStyle: para, .shadow: glow])
+    let ts = astr.size()
+    astr.draw(at: CGPoint(x: (LW - ts.width)/2, y: LH - top - ts.height))
+    return top + ts.height
+}
+var top: CGFloat = 30
+top = centered("Turn it down!!!", size: 44, weight: 800, color: rgb(0x26,0x2c,0x2c), top: top)
+_ = centered("- mom", size: 22, weight: 500, color: rgb(0x3f,0x6f,0x6d), top: top - 4)
 
 gctx.flushGraphics()
 NSGraphicsContext.restoreGraphicsState()
