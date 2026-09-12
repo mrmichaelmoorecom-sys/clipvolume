@@ -59,7 +59,7 @@ rgb(0x26, 0x2c, 0x2c).setStroke()
 arrow.stroke()
 
 // Headline near the top.
-let text = "Who's making that noise?"
+let text = "Turn it down!!!  — mom"
 var size: CGFloat = 40
 let w40 = NSAttributedString(string: text, attributes: [.font: outfit(40)]).size().width
 if w40 > 600 { size = 40 * 600 / w40 }
